@@ -1,65 +1,98 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useGlobeState } from "@/hooks/useGlobalState";
+import { Stem } from "@/types";
+import { TRAIT_COLORS, TRAIT_SHAPES, TRAIT_EFFECTS } from "@/lib/constants";
+import GlobeCanvas from "@/components/globe/GlobeCanvas";
+import GlobeProgress from "@/components/globe/GlobeProgress";
+import DropModal from "@/components/stem/DropModal";
+import ShakeScreen from "@/components/globe/ShakeScreen";
 
-export default function Home() {
+export default function HomePage() {
+  const { globe, addMockDrop } = useGlobeState();
+  const [showDrop, setShowDrop] = useState(false);
+  const [showShake, setShowShake] = useState(false);
+  const ready = globe.drops.length >= globe.threshold;
+
+  const handleDrop = (stem: Stem, traits: string[]) => {
+    addMockDrop({
+      address: "0xYou...r",
+      stemType: stem.type,
+      traits,
+      royaltyShare: 12.5,
+      claimed: false,
+    });
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="relative min-h-[calc(100vh-76px)] md:h-[calc(100vh-76px)] flex flex-col items-center justify-center pt-12 pb-8 px-4 md:py-4 overflow-y-auto md:overflow-hidden">
+      {/* Hero text */}
+      {/* <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
+        className="text-center mb-10">
+        <p className="text-xs tracking-widest uppercase mb-3" style={{ color: "var(--ice)", opacity: 0.6 }}>
+          Collaborative · Generative · On-chain
+        </p>
+        <h1 className="font-display text-5xl md:text-6xl mb-4" style={{ color: "var(--snow)", lineHeight: 1.1 }}>
+          Drop a stem.<br />
+          <em>Shake the globe.</em>
+        </h1>
+        <p className="text-lg max-w-md mx-auto leading-relaxed" style={{ color: "var(--frost)", opacity: 0.55 }}>
+          8 contributors. 1 beat tape. Royalties split on-chain, automatically.
+          No labels. No lawyers. Just Sui.
+        </p>
+      </motion.div> */}
+
+      {/* Globe */}
+      <GlobeCanvas globe={globe} />
+
+      {/* Progress */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+        className="mt-4 mb-6">
+        <GlobeProgress globe={globe} />
+      </motion.div>
+
+      {/* CTAs */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
+        className="flex gap-3 flex-wrap justify-center">
+        {ready ? (
+          <button className="btn-amber" style={{ fontSize: 14, padding: "12px 32px" }}
+            onClick={() => setShowShake(true)}>
+            🌨️ Shake the Globe
+          </button>
+        ) : (
+          <button className="btn-amber" style={{ fontSize: 14, padding: "12px 32px" }}
+            onClick={() => setShowDrop(true)}>
+            ❄️ Drop a Stem
+          </button>
+        )}
+        <button className="btn-ghost" style={{ fontSize: 14, padding: "12px 32px" }}
+          onClick={() => setShowDrop(true)}>
+          Connect Wallet
+        </button>
+      </motion.div>
+
+      {/* How it works */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
+        className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl w-full">
+        {[
+          { icon: "🎵", title: "Drop a Stem", desc: "Pick a lo-fi audio loop and drop it into the shared globe. Your Snowball NFT is minted on Sui with randomised traits." },
+          { icon: "🌨️", title: "Shake at 8", desc: "When the 8th contributor drops, anyone can shake the globe. A unique beat tape is generated from all stems." },
+          { icon: "💰", title: "Claim Royalties", desc: "Every contributor gets an equal royalty share, stored on-chain. Claim your SUI any time, no trust required." },
+        ].map(({ icon, title, desc }) => (
+          <div key={title} className="glass p-5">
+            <div className="text-2xl mb-3">{icon}</div>
+            <p className="font-display text-base mb-2" style={{ color: "var(--snow)" }}>{title}</p>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--frost)", opacity: 0.5 }}>{desc}</p>
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Modals */}
+      <AnimatePresence>
+        {showDrop && <DropModal onClose={() => setShowDrop(false)} onDrop={handleDrop} />}
+        {showShake && <ShakeScreen globe={globe} onClose={() => setShowShake(false)} />}
+      </AnimatePresence>
+    </main>
   );
 }
